@@ -17,11 +17,11 @@
 
 name := "spark-bigquery"
 organization := "com.spotify"
-scalaVersion := "2.11.11"
-crossScalaVersions := Seq("2.10.6", "2.11.11")
+scalaVersion := "2.11.12"
+crossScalaVersions := Seq("2.10.6", "2.11.12")
 
 spName := "spotify/spark-bigquery"
-sparkVersion := "2.2.0"
+sparkVersion := "2.4.0"
 sparkComponents := Seq("core", "sql")
 spAppendScalaVersion := true
 spIncludeMaven := true
