@@ -125,10 +125,6 @@ private[bigquery] class BigQueryClient(conf: Configuration) {
     if (createDisposition != null) {
       loadConfig = loadConfig.setCreateDisposition(createDisposition.toString)
     }
-    if (destinationTable.getTableId.contains("$")) {
-      val timePartitioning = new TimePartitioning().setType("DAY")
-      loadConfig = loadConfig.setTimePartitioning(timePartitioning)
-    }
 
     val jobConfig = new JobConfiguration().setLoad(loadConfig)
     val jobReference = createJobReference(projectId, JOB_ID_PREFIX)
