@@ -39,7 +39,6 @@ import scala.util.Random
 import scala.util.control.NonFatal
 
 private[bigquery] object BigQueryClient {
-  val STAGING_DATASET_ID = "bq.staging_dataset.id"
   val STAGING_DATASET_PREFIX = "bq.staging_dataset.prefix"
   val STAGING_DATASET_PREFIX_DEFAULT = "spark_bigquery_staging_"
   val STAGING_DATASET_LOCATION = "bq.staging_dataset.location"
@@ -142,8 +141,7 @@ private[bigquery] class BigQueryClient(conf: Configuration) {
   private def stagingDataset(location: String): DatasetReference = {
     // Create staging dataset if it does not already exist
     val prefix = conf.get(STAGING_DATASET_PREFIX, STAGING_DATASET_PREFIX_DEFAULT)
-    conf.setIfUnset(STAGING_DATASET_ID, prefix + location.toLowerCase)
-    val datasetId = conf.get(STAGING_DATASET_ID)
+    val datasetId = prefix + location.toLowerCase
     try {
       bigquery.datasets().get(projectId, datasetId).execute()
       logger.info(s"Staging dataset $projectId:$datasetId already exists")
