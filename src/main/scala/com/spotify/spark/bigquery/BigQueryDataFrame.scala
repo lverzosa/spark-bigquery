@@ -47,16 +47,11 @@ class BigQueryDataFrame(df: DataFrame) {
     */
   def saveAsBigQueryTable(tableRef: TableReference,
                           writeDisposition: WriteDisposition.Value,
-                          createDisposition: CreateDisposition.Value,
-                          tmpWriteOptions: Map[String, String]): Unit = {
+                          createDisposition: CreateDisposition.Value): Unit = {
     val bucket = conf.get(BigQueryConfiguration.GCS_BUCKET_KEY)
     val temp = s"spark-bigquery-${System.currentTimeMillis()}=${Random.nextInt(Int.MaxValue)}"
     val gcsPath = s"gs://$bucket/hadoop/tmp/spark-bigquery/$temp"
-
-    tmpWriteOptions match {
-      case null => df.write.avro(gcsPath)
-      case _ => df.write.options(tmpWriteOptions).avro(gcsPath)
-    }
+    df.write.avro(gcsPath)
 
     val fdf = bq.load(gcsPath, tableRef, writeDisposition, createDisposition)
     delete(new Path(gcsPath))
@@ -68,13 +63,11 @@ class BigQueryDataFrame(df: DataFrame) {
     */
   def saveAsBigQueryTable(tableSpec: String,
                           writeDisposition: WriteDisposition.Value = null,
-                          createDisposition: CreateDisposition.Value = null,
-                          tmpWriteOptions: Map[String,String] = null): Unit =
+                          createDisposition: CreateDisposition.Value = null): Unit =
     saveAsBigQueryTable(
       BigQueryStrings.parseTableReference(tableSpec),
       writeDisposition,
-      createDisposition,
-      tmpWriteOptions)
+      createDisposition)
 
   private def delete(path: Path): Unit = {
     val fs = FileSystem.get(path.toUri, conf)
