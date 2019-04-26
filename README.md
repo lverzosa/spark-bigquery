@@ -19,9 +19,7 @@ Google BigQuery support for Spark, SQL, and DataFrames.
 
 To use the package in a Google [Cloud Dataproc](https://cloud.google.com/dataproc/) cluster:
 
-install `org.apache.avro_avro-ipc-1.7.7.jar` to `~/.ivy2/jars`
-
-`spark-shell --packages com.spotify:spark-bigquery_2.10:0.2.2`
+`spark-shell --packages com.spotify:spark-bigquery_2.10:0.2.0`
 
 To use it in a local SBT console:
 
