@@ -1,3 +1,8 @@
+MAINTENANCE MODE
+================
+
+THIS PROJECT IS IN MAINTENANCE MODE DUE TO THE FACT THAT IT'S NOT WIDELY USED WITHIN SPOTIFY. WE'LL PROVIDE BEST EFFORT SUPPORT FOR ISSUES AND PULL REQUESTS BUT DO EXPECT DELAY IN RESPONSES.
+
 spark-bigquery
 ==============
 
@@ -12,9 +17,11 @@ Google BigQuery support for Spark, SQL, and DataFrames.
 | 0.2.x | 2.x.y | Active development |
 | 0.1.x | 1.x.y | Development halted |
 
-To use the package in a Google [Cloud Dataproc](https://cloud.google.com/dataproc/) cluster:
+Building:
 
-`spark-shell --packages com.spotify:spark-bigquery_2.10:0.2.0`
+```sbt clean assembly```
+
+Assembly doesn't like the latest version of Java (currently 11) so set JAVA_HOME to point to Java 8.
 
 To use it in a local SBT console:
 

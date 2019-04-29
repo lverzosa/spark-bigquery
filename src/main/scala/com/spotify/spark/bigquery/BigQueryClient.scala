@@ -17,6 +17,7 @@
 
 package com.spotify.spark.bigquery
 
+import java.io.FileInputStream
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -39,9 +40,11 @@ import scala.util.Random
 import scala.util.control.NonFatal
 
 private[bigquery] object BigQueryClient {
+  // the following is specific to this connector...
   val STAGING_DATASET_PREFIX = "bq.staging_dataset.prefix"
   val STAGING_DATASET_PREFIX_DEFAULT = "spark_bigquery_staging_"
   val STAGING_DATASET_LOCATION = "bq.staging_dataset.location"
+
   val STAGING_DATASET_LOCATION_DEFAULT = "US"
   val STAGING_DATASET_TABLE_EXPIRATION_MS = 86400000L
   val STAGING_DATASET_DESCRIPTION = "Spark BigQuery staging dataset"
@@ -64,12 +67,32 @@ private[bigquery] class BigQueryClient(conf: Configuration) {
 
   private val SCOPES = List(BigqueryScopes.BIGQUERY).asJava
 
-  private val bigquery: Bigquery = {
-    val credential = GoogleCredential.getApplicationDefault.createScoped(SCOPES)
-    new Bigquery.Builder(new NetHttpTransport, new JacksonFactory, credential)
+  private val googleCredential:GoogleCredential = {
+    // TODO get this working for pk12 credentials
+
+    val jsonKeyFileLocation:String = conf.get("fs.gs.auth.service.account.json.keyfile", "")
+    //"fs.gs.auth.service.account.json.keyfile"
+    if(jsonKeyFileLocation.nonEmpty) {
+      var optionFileInputStream:Option[FileInputStream] = None
+
+      try {
+        optionFileInputStream = Some(new FileInputStream(jsonKeyFileLocation))
+
+        GoogleCredential.fromStream(optionFileInputStream.get).createScoped(SCOPES)
+      } finally {
+        if (optionFileInputStream.isDefined) {
+          optionFileInputStream.get.close()
+        }
+      }
+    } else {
+      GoogleCredential.getApplicationDefault.createScoped(SCOPES)
+    }
+  }
+
+  private val bigquery: Bigquery =
+    new Bigquery.Builder(new NetHttpTransport, new JacksonFactory, googleCredential)
       .setApplicationName("spark-bigquery")
       .build()
-  }
 
   private def projectId: String = conf.get(BigQueryConfiguration.PROJECT_ID_KEY)
 
