@@ -67,13 +67,13 @@ private[bigquery] class BigQueryClient(conf: Configuration) {
 
   private val SCOPES = List(BigqueryScopes.BIGQUERY).asJava
 
-  private val googleCredential:GoogleCredential = {
+  private val googleCredential: GoogleCredential = {
     // TODO get this working for pk12 credentials
 
-    val jsonKeyFileLocation:String = conf.get("fs.gs.auth.service.account.json.keyfile", "")
+    val jsonKeyFileLocation: String = conf.get("fs.gs.auth.service.account.json.keyfile", "")
     //"fs.gs.auth.service.account.json.keyfile"
-    if(jsonKeyFileLocation.nonEmpty) {
-      var optionFileInputStream:Option[FileInputStream] = None
+    if (jsonKeyFileLocation.nonEmpty) {
+      var optionFileInputStream: Option[FileInputStream] = None
 
       try {
         optionFileInputStream = Some(new FileInputStream(jsonKeyFileLocation))
@@ -96,12 +96,14 @@ private[bigquery] class BigQueryClient(conf: Configuration) {
 
   private def projectId: String = conf.get(BigQueryConfiguration.PROJECT_ID_KEY)
 
-  private val queryCache: LoadingCache[String, TableReference] =
+  private case class CacheKey(sqlQuery: String, useStandardSql: Boolean)
+
+  private val queryCache: LoadingCache[CacheKey, TableReference] =
     CacheBuilder.newBuilder()
       .expireAfterWrite(STAGING_DATASET_TABLE_EXPIRATION_MS, TimeUnit.MILLISECONDS)
-      .build[String, TableReference](new CacheLoader[String, TableReference] {
-      override def load(key: String): TableReference = {
-        val sqlQuery = key
+      .build[CacheKey, TableReference](new CacheLoader[CacheKey, TableReference] {
+      override def load(key: CacheKey): TableReference = {
+        val sqlQuery = key.sqlQuery
         logger.info(s"Executing query $sqlQuery")
 
         val location = conf.get(STAGING_DATASET_LOCATION, STAGING_DATASET_LOCATION_DEFAULT)
@@ -109,7 +111,8 @@ private[bigquery] class BigQueryClient(conf: Configuration) {
         val tableName = BigQueryStrings.toString(destinationTable)
         logger.info(s"Destination table: $destinationTable")
 
-        val job = createQueryJob(sqlQuery, destinationTable, dryRun = false)
+        val job = createQueryJob(sqlQuery, destinationTable,
+          dryRun = false, useLegacySql = !key.useStandardSql)
         waitForJob(job)
         destinationTable
       }
@@ -117,19 +120,21 @@ private[bigquery] class BigQueryClient(conf: Configuration) {
 
   private def inConsole = Thread.currentThread().getStackTrace.exists(
     _.getClassName.startsWith("scala.tools.nsc.interpreter."))
+
   private val PRIORITY = if (inConsole) "INTERACTIVE" else "BATCH"
   private val TABLE_ID_PREFIX = "spark_bigquery"
   private val JOB_ID_PREFIX = "spark_bigquery"
   private val TIME_FORMATTER = DateTimeFormat.forPattern("yyyyMMddHHmmss")
 
   /**
-   * Perform a BigQuery SELECT query and save results to a temporary table.
-   */
-  def query(sqlQuery: String): TableReference = queryCache.get(sqlQuery)
+    * Perform a BigQuery SELECT query and save results to a temporary table.
+    */
+  def query(sqlQuery: String, useStandardSql: Boolean = false): TableReference =
+    queryCache.get(CacheKey(sqlQuery, useStandardSql))
 
   /**
-   * Load an Avro data set on GCS to a BigQuery table.
-   */
+    * Load an Avro data set on GCS to a BigQuery table.
+    */
   def load(gcsPath: String, destinationTable: TableReference,
            writeDisposition: WriteDisposition.Value = null,
            createDisposition: CreateDisposition.Value = null): Unit = {
@@ -196,8 +201,8 @@ private[bigquery] class BigQueryClient(conf: Configuration) {
 
   private def createQueryJob(sqlQuery: String,
                              destinationTable: TableReference,
-                             dryRun: Boolean): Job = {
-    var queryConfig = new JobConfigurationQuery()
+                             dryRun: Boolean, useLegacySql: Boolean): Job = {
+    var queryConfig = new JobConfigurationQuery().setUseLegacySql(useLegacySql)
       .setQuery(sqlQuery)
       .setPriority(PRIORITY)
       .setCreateDisposition("CREATE_IF_NEEDED")
