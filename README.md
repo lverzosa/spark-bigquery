@@ -17,11 +17,11 @@ Google BigQuery support for Spark, SQL, and DataFrames.
 | 0.2.x | 2.x.y | Active development |
 | 0.1.x | 1.x.y | Development halted |
 
-To use the package in a Google [Cloud Dataproc](https://cloud.google.com/dataproc/) cluster:
+Building:
 
-install `org.apache.avro_avro-ipc-1.7.7.jar` to `~/.ivy2/jars`
+```sbt clean assembly```
 
-`spark-shell --packages com.spotify:spark-bigquery_2.10:0.2.2`
+Assembly doesn't like the latest version of Java (currently 11) so set JAVA_HOME to point to Java 8.
 
 To use it in a local SBT console:
 
@@ -50,20 +50,9 @@ val table = sqlContext.bigQueryTable("bigquery-public-data:samples.shakespeare")
 val df = sqlContext.bigQuerySelect(
   "SELECT word, word_count FROM [bigquery-public-data:samples.shakespeare]")
 
-// Save data to a table
+  // Save data to a table
 df.saveAsBigQueryTable("my-project:my_dataset.my_table")
 ```
-
-If you'd like to write nested records to BigQuery, be sure to specify an Avro Namespace.
-BigQuery is unable to load Avro Namespaces with a leading dot (`.nestedColumn`) on nested records.
-
-```scala
-// BigQuery is able to load fields with namespace 'myNamespace.nestedColumn'
-df.saveAsBigQueryTable("my-project:my_dataset.my_table", tmpWriteOptions = Map("recordNamespace" -> "myNamespace"))
-```
-See also
-[Loading Avro Data from Google Cloud Storage](https://cloud.google.com/bigquery/docs/loading-data-cloud-storage-avro)
-for data type mappings and limitations. For example loading arrays of arrays is not supported.
 
 # License
 

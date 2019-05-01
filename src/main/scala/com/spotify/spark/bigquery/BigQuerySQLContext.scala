@@ -37,8 +37,8 @@ import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 class BigQuerySQLContext(sqlContext: SQLContext) {
 
   val sc: SparkContext = sqlContext.sparkContext
-  val conf: Configuration = new Configuration(sc.hadoopConfiguration)
-  lazy val bq: BigQueryClient = BigQueryClient.getInstance(conf)
+  val conf: Configuration = sc.hadoopConfiguration
+  lazy val bq: BigQueryClient  = BigQueryClient.getInstance(conf)
 
   // Register GCS implementation
   if (conf.get("fs.gs.impl") == null) {
@@ -68,18 +68,6 @@ class BigQuerySQLContext(sqlContext: SQLContext) {
     */
   def setBigQueryDatasetLocation(location: String): Unit =
     conf.set(BigQueryClient.STAGING_DATASET_LOCATION, location)
-
-  /**
-    * Set BigQuery query job priority.
-    * @param interactive Whether to execute query jobs as interactive
-    *                    or batch queries.
-    * @see https://cloud.google.com/bigquery/docs/query-overview
-    */
-  def setBigQueryJobPriority(interactive: Boolean): Unit = {
-    import BigQueryClient._
-    val priority = if(interactive) JOB_PRIORITY_INTERACTIVE else JOB_PRIORITY_BATCH
-    conf.set(QUERY_JOB_PRIORITY, priority)
-  }
 
   /**
     * Set GCP JSON key file.
@@ -115,9 +103,11 @@ class BigQuerySQLContext(sqlContext: SQLContext) {
     BigQueryConfiguration.configureBigQueryInput(
       conf, tableRef.getProjectId, tableRef.getDatasetId, tableRef.getTableId)
 
+    val fClass = classOf[AvroBigQueryInputFormat]
+    val kClass = classOf[LongWritable]
+    val vClass = classOf[GenericData.Record]
     val rdd = sc
-      .newAPIHadoopRDD(conf, classOf[AvroBigQueryInputFormat], classOf[LongWritable],
-        classOf[GenericData.Record])
+      .newAPIHadoopRDD(conf, fClass, kClass, vClass)
       .map(_._2)
     val schemaString = rdd.map(_.getSchema.toString).first()
     val schema = new Schema.Parser().parse(schemaString)
