@@ -32,13 +32,14 @@ import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 
 /**
   * Easier class to expose to python and java
+  *
   * @param sqlContext SQLContext
   */
 class BigQuerySQLContext(sqlContext: SQLContext) {
 
   val sc: SparkContext = sqlContext.sparkContext
   val conf: Configuration = sc.hadoopConfiguration
-  lazy val bq: BigQueryClient  = BigQueryClient.getInstance(conf)
+  lazy val bq: BigQueryClient = BigQueryClient.getInstance(conf)
 
   // Register GCS implementation
   if (conf.get("fs.gs.impl") == null) {
@@ -88,9 +89,12 @@ class BigQuerySQLContext(sqlContext: SQLContext) {
 
   /**
     * Perform a BigQuery SELECT query and load results as a [[DataFrame]].
-    * @param sqlQuery SQL query in SQL-2011 dialect.
+    *
+    * @param sqlQuery       SQL query in SQL-2011 dialect.
+    * @param useStandardSql Set for Standard SQL dialect.
     */
-  def bigQuerySelect(sqlQuery: String): DataFrame = bigQueryTable(bq.query(sqlQuery))
+  def bigQuerySelect(sqlQuery: String, useStandardSql: Boolean = false): DataFrame =
+    bigQueryTable(bq.query(sqlQuery, useStandardSql = useStandardSql))
 
   /**
     * Load a BigQuery table as a [[DataFrame]].
