@@ -45,10 +45,13 @@ Usage:
 // Load everything from a table
 val table = sqlContext.bigQueryTable("bigquery-public-data:samples.shakespeare")
 
-// Load results from a SQL query
-// Only legacy SQL dialect is supported for now
+// Load results from a legacy SQL query
 val df = sqlContext.bigQuerySelect(
   "SELECT word, word_count FROM [bigquery-public-data:samples.shakespeare]")
+  
+// Load results from a standard SQL query
+val df = sqlContext.bigQuerySelect(
+  "SELECT word, word_count FROM `bigquery-public-data.samples.shakespeare`", useStandardSql = true)
 
   // Save data to a table
 df.saveAsBigQueryTable("my-project:my_dataset.my_table")
