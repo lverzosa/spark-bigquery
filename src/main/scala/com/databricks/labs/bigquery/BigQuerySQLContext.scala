@@ -15,7 +15,7 @@
  * under the License.
  */
 
-package com.spotify.spark.bigquery
+package com.databricks.labs.bigquery
 
 import com.databricks.spark.avro.SchemaConverters
 import com.google.api.services.bigquery.model.TableReference
