@@ -15,7 +15,7 @@
  * under the License.
  */
 
-package com.spotify.spark.bigquery
+package com.databricks.labs.bigquery
 
 import java.io.FileInputStream
 import java.util.UUID

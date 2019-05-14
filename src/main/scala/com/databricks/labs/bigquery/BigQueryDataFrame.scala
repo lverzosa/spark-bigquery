@@ -15,14 +15,14 @@
  * under the License.
  */
 
-package com.spotify.spark.bigquery
+package com.databricks.labs.bigquery
 
+import com.databricks.spark.avro._
 import com.google.api.services.bigquery.model.TableReference
 import com.google.cloud.hadoop.io.bigquery.{BigQueryConfiguration, BigQueryStrings}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.{DataFrame, SQLContext}
-import com.databricks.spark.avro._
 
 import scala.util.Random
 
