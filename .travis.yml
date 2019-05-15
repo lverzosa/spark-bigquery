@@ -1,8 +1,7 @@
 language: scala
 scala:
-  - 2.10.6
-  - 2.11.8
-jdk: oraclejdk7
+  - 2.11.12
+jdk: oraclejdk8
 
 cache:
   directories:
@@ -14,6 +13,5 @@ script:
 
 notifications:
   email:
-    - neville@spotify.com
-    - rav@spotify.com
-    - amartin@spotify.com
+    - lorenz.verzosa@databricks.com
+
