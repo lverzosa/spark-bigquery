@@ -1,10 +1,10 @@
 spark-bigquery
 ==============
 
+[![Build Status](https://travis-ci.org/lverzosa/spark-bigquery.svg?branch=master)](https://travis-ci.org/lverzosa/spark-bigquery)
 <!--
-TODO - Setup build server and find appropriate badges (if wanted)
+TODO - find appropriate badges (if wanted)
 
-[![Build Status](https://travis-ci.org/spotify/spark-bigquery.svg?branch=master)](https://travis-ci.org/spotify/spark-bigquery)
 [![GitHub license](https://img.shields.io/github/license/spotify/spark-bigquery.svg)](./LICENSE)
 [![Maven Central](https://img.shields.io/maven-central/v/com.spotify/spark-bigquery_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/com.spotify/spark-bigquery_2.11)
 -->
@@ -55,6 +55,9 @@ val df = sqlContext.bigQuerySelect(
 
   // Save data to a table
 df.saveAsBigQueryTable("my-project:my_dataset.my_table")
+
+// Read data from Google Cloud Storage - use the gs:// protocol
+val df = spark.read.json(s"gs://bigquery-databricks-poc/20170801.json.gz")
 ```
 
 # License
